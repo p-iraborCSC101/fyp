@@ -1,0 +1,7 @@
+scenario,planner,runs,response_time_mean_s,response_time_std_s,path_length_mean_m,path_length_std_m,success_rate_pct,compute_time_mean_ms,replans_mean
+low_crowding,A*,,,,,,,,,
+low_crowding,RRT*,,,,,,,,,
+moderate_crowding,A*,,,,,,,,,
+moderate_crowding,RRT*,,,,,,,,,
+high_crowding,A*,,,,,,,,,
+high_crowding,RRT*,,,,,,,,,

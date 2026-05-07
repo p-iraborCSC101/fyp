@@ -1,0 +1,279 @@
+<?xml version='1.0'?>
+<!--
+  Base hospital world: nurse station + corridor + 3 patient rooms.
+  Floor 24m (X) by 14m (Y), origin at south-west corner.
+  Robot spawns at (2, 2). Patient goals: A=(4,9.5), B=(12,9.5), C=(20,9.5).
+
+  Internal walls:
+    - corridor/room divider at y=8, broken by 3 doors of width 2m
+      (Room A door x in [4,6]; Room B door x in [12,14]; Room C door x in [20,22])
+    - room dividers at x=8 and x=16 from y=8 to y=14
+
+  Beds: 2m x 1m x 0.4m, centered at (4,11), (12,11), (20,11).
+-->
+<sdf version='1.7'>
+  <world name='hospital_low_crowding'>
+    <plugin filename='libgz-sim-physics-system.so' name='gz::sim::systems::Physics'/>
+    <plugin filename='libgz-sim-user-commands-system.so' name='gz::sim::systems::UserCommands'/>
+    <plugin filename='libgz-sim-scene-broadcaster-system.so' name='gz::sim::systems::SceneBroadcaster'/>
+
+    <gravity>0 0 -9.81</gravity>
+
+    <light name='sun' type='directional'>
+      <pose>12 7 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>-0.5 0.1 -1</direction>
+    </light>
+
+    <model name='ground_plane'>
+      <static>true</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>60 60</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>60 60</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.95 0.95 0.92 1</ambient>
+            <diffuse>0.95 0.95 0.92 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ===================== Outer walls ===================== -->
+    <model name='wall_south'>
+      <static>true</static>
+      <pose>12 0 0.5 0 0 0</pose>
+      <link name='link'>
+        <collision name='c'><geometry><box><size>24.2 0.2 1</size></box></geometry></collision>
+        <visual name='v'><geometry><box><size>24.2 0.2 1</size></box></geometry>
+          <material><ambient>0.85 0.85 0.85 1</ambient><diffuse>0.85 0.85 0.85 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name='wall_north'>
+      <static>true</static>
+      <pose>12 14 0.5 0 0 0</pose>
+      <link name='link'>
+        <collision name='c'><geometry><box><size>24.2 0.2 1</size></box></geometry></collision>
+        <visual name='v'><geometry><box><size>24.2 0.2 1</size></box></geometry>
+          <material><ambient>0.85 0.85 0.85 1</ambient><diffuse>0.85 0.85 0.85 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name='wall_west'>
+      <static>true</static>
+      <pose>0 7 0.5 0 0 0</pose>
+      <link name='link'>
+        <collision name='c'><geometry><box><size>0.2 14 1</size></box></geometry></collision>
+        <visual name='v'><geometry><box><size>0.2 14 1</size></box></geometry>
+          <material><ambient>0.85 0.85 0.85 1</ambient><diffuse>0.85 0.85 0.85 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name='wall_east'>
+      <static>true</static>
+      <pose>24 7 0.5 0 0 0</pose>
+      <link name='link'>
+        <collision name='c'><geometry><box><size>0.2 14 1</size></box></geometry></collision>
+        <visual name='v'><geometry><box><size>0.2 14 1</size></box></geometry>
+          <material><ambient>0.85 0.85 0.85 1</ambient><diffuse>0.85 0.85 0.85 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <!-- ============ Corridor / rooms divider at y=8 with 3 doors ============ -->
+    <model name='wall_div_seg1'>
+      <static>true</static>
+      <pose>2 8 0.5 0 0 0</pose>
+      <link name='link'>
+        <collision name='c'><geometry><box><size>4 0.2 1</size></box></geometry></collision>
+        <visual name='v'><geometry><box><size>4 0.2 1</size></box></geometry>
+          <material><ambient>0.85 0.85 0.85 1</ambient><diffuse>0.85 0.85 0.85 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name='wall_div_seg2'>
+      <static>true</static>
+      <pose>9 8 0.5 0 0 0</pose>
+      <link name='link'>
+        <collision name='c'><geometry><box><size>6 0.2 1</size></box></geometry></collision>
+        <visual name='v'><geometry><box><size>6 0.2 1</size></box></geometry>
+          <material><ambient>0.85 0.85 0.85 1</ambient><diffuse>0.85 0.85 0.85 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name='wall_div_seg3'>
+      <static>true</static>
+      <pose>17 8 0.5 0 0 0</pose>
+      <link name='link'>
+        <collision name='c'><geometry><box><size>6 0.2 1</size></box></geometry></collision>
+        <visual name='v'><geometry><box><size>6 0.2 1</size></box></geometry>
+          <material><ambient>0.85 0.85 0.85 1</ambient><diffuse>0.85 0.85 0.85 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name='wall_div_seg4'>
+      <static>true</static>
+      <pose>23 8 0.5 0 0 0</pose>
+      <link name='link'>
+        <collision name='c'><geometry><box><size>2 0.2 1</size></box></geometry></collision>
+        <visual name='v'><geometry><box><size>2 0.2 1</size></box></geometry>
+          <material><ambient>0.85 0.85 0.85 1</ambient><diffuse>0.85 0.85 0.85 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <!-- ============ Room dividers at x=8 and x=16 ============ -->
+    <model name='wall_room_a_b'>
+      <static>true</static>
+      <pose>8 11 0.5 0 0 0</pose>
+      <link name='link'>
+        <collision name='c'><geometry><box><size>0.2 6 1</size></box></geometry></collision>
+        <visual name='v'><geometry><box><size>0.2 6 1</size></box></geometry>
+          <material><ambient>0.85 0.85 0.85 1</ambient><diffuse>0.85 0.85 0.85 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name='wall_room_b_c'>
+      <static>true</static>
+      <pose>16 11 0.5 0 0 0</pose>
+      <link name='link'>
+        <collision name='c'><geometry><box><size>0.2 6 1</size></box></geometry></collision>
+        <visual name='v'><geometry><box><size>0.2 6 1</size></box></geometry>
+          <material><ambient>0.85 0.85 0.85 1</ambient><diffuse>0.85 0.85 0.85 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <!-- ============ Beds ============ -->
+    <model name='bed_room_a'>
+      <static>true</static>
+      <pose>4 11 0.2 0 0 0</pose>
+      <link name='link'>
+        <collision name='c'><geometry><box><size>2 1 0.4</size></box></geometry></collision>
+        <visual name='v'><geometry><box><size>2 1 0.4</size></box></geometry>
+          <material><ambient>0.6 0.5 0.4 1</ambient><diffuse>0.6 0.5 0.4 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name='bed_room_b'>
+      <static>true</static>
+      <pose>12 11 0.2 0 0 0</pose>
+      <link name='link'>
+        <collision name='c'><geometry><box><size>2 1 0.4</size></box></geometry></collision>
+        <visual name='v'><geometry><box><size>2 1 0.4</size></box></geometry>
+          <material><ambient>0.6 0.5 0.4 1</ambient><diffuse>0.6 0.5 0.4 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name='bed_room_c'>
+      <static>true</static>
+      <pose>20 11 0.2 0 0 0</pose>
+      <link name='link'>
+        <collision name='c'><geometry><box><size>2 1 0.4</size></box></geometry></collision>
+        <visual name='v'><geometry><box><size>2 1 0.4</size></box></geometry>
+          <material><ambient>0.6 0.5 0.4 1</ambient><diffuse>0.6 0.5 0.4 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <!-- ============ Robot (medibot) ============ -->
+    <model name='medibot'>
+      <pose>2 2 0.1 0 0 0</pose>
+      <link name='base_link'>
+        <inertial>
+          <mass>20.0</mass>
+          <inertia><ixx>0.2</ixx><iyy>0.2</iyy><izz>0.2</izz></inertia>
+        </inertial>
+        <collision name='base_collision'>
+          <geometry><box><size>0.5 0.4 0.2</size></box></geometry>
+        </collision>
+        <visual name='base_visual'>
+          <geometry><box><size>0.5 0.4 0.2</size></box></geometry>
+          <material><ambient>0.2 0.5 0.9 1</ambient><diffuse>0.2 0.5 0.9 1</diffuse></material>
+        </visual>
+      </link>
+
+      <link name='left_wheel'>
+        <pose>0 0.25 0.05 0 1.5708 0</pose>
+        <collision name='c'><geometry><cylinder><radius>0.05</radius><length>0.03</length></cylinder></geometry></collision>
+        <visual name='v'><geometry><cylinder><radius>0.05</radius><length>0.03</length></cylinder></geometry>
+          <material><ambient>0.1 0.1 0.1 1</ambient><diffuse>0.1 0.1 0.1 1</diffuse></material></visual>
+      </link>
+
+      <link name='right_wheel'>
+        <pose>0 -0.25 0.05 0 1.5708 0</pose>
+        <collision name='c'><geometry><cylinder><radius>0.05</radius><length>0.03</length></cylinder></geometry></collision>
+        <visual name='v'><geometry><cylinder><radius>0.05</radius><length>0.03</length></cylinder></geometry>
+          <material><ambient>0.1 0.1 0.1 1</ambient><diffuse>0.1 0.1 0.1 1</diffuse></material></visual>
+      </link>
+
+      <joint name='left_wheel_joint' type='revolute'>
+        <parent>base_link</parent><child>left_wheel</child>
+        <axis><xyz>0 1 0</xyz></axis>
+      </joint>
+      <joint name='right_wheel_joint' type='revolute'>
+        <parent>base_link</parent><child>right_wheel</child>
+        <axis><xyz>0 1 0</xyz></axis>
+      </joint>
+
+      <plugin filename='libgz-sim-diff-drive-system.so' name='gz::sim::systems::DiffDrive'>
+        <left_joint>left_wheel_joint</left_joint>
+        <right_joint>right_wheel_joint</right_joint>
+        <wheel_separation>0.5</wheel_separation>
+        <wheel_radius>0.05</wheel_radius>
+        <topic>/model/medibot/cmd_vel</topic>
+        <odom_topic>/model/medibot/odometry</odom_topic>
+        <odom_frame>odom</odom_frame>
+        <robot_base_frame>base_link</robot_base_frame>
+      </plugin>
+    </model>
+
+  
+    <!-- ===== Moving humans (scenario: low_crowding) ===== -->
+    <actor name='human_1'>
+      <pose>2.00 5.00 1.0 0 0 0</pose>
+      <skin>
+        <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name='walk'>
+        <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <delay_start>0</delay_start>
+        <auto_start>true</auto_start>
+        <trajectory id='0' type='walk'>
+        <waypoint><time>0.000</time><pose>2.00 5.00 1.0 0 0 0</pose></waypoint>
+        <waypoint><time>50.000</time><pose>22.00 5.00 1.0 0 0 0</pose></waypoint>
+        <waypoint><time>100.000</time><pose>2.00 5.00 1.0 0 0 0</pose></waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    <actor name='human_2'>
+      <pose>20.00 7.00 1.0 0 0 0</pose>
+      <skin>
+        <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name='walk'>
+        <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <script>
+        <loop>true</loop>
+        <delay_start>0</delay_start>
+        <auto_start>true</auto_start>
+        <trajectory id='0' type='walk'>
+        <waypoint><time>0.000</time><pose>20.00 7.00 1.0 0 0 0</pose></waypoint>
+        <waypoint><time>37.500</time><pose>5.00 7.00 1.0 0 0 0</pose></waypoint>
+        <waypoint><time>75.000</time><pose>20.00 7.00 1.0 0 0 0</pose></waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+  </world>
+</sdf>

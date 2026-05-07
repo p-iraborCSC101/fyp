@@ -1,0 +1,54 @@
+# Scenario: low_crowding
+# 2 moving humans in the corridor; few dynamic blockages expected.
+scenario: low_crowding
+world_file: hospital_low_crowding.sdf
+dynamic_event_count: 2
+actor_count: 2
+
+planner_grid:
+  width: 16
+  height: 14
+  start: [2, 2]
+  obstacles:
+    # Corridor / rooms divider @ y=8 (doors at x=4-6 and x=12-14)
+    - [0, 8]
+    - [1, 8]
+    - [2, 8]
+    - [3, 8]
+    - [6, 8]
+    - [7, 8]
+    - [8, 8]
+    - [9, 8]
+    - [10, 8]
+    - [11, 8]
+    - [14, 8]
+    - [15, 8]
+    # Room divider wall at x=8
+    - [8, 9]
+    - [8, 10]
+    - [8, 11]
+    - [8, 12]
+    - [8, 13]
+    # Bed footprints (Room A and B)
+    - [3, 10]
+    - [3, 11]
+    - [4, 10]
+    - [4, 11]
+    - [5, 10]
+    - [5, 11]
+    - [11, 10]
+    - [11, 11]
+    - [12, 10]
+    - [12, 11]
+    - [13, 10]
+    - [13, 11]
+
+patient_locations:
+  - name: patient_a
+    x: 4
+    y: 9
+    severity: high
+  - name: patient_b
+    x: 12
+    y: 9
+    severity: high
