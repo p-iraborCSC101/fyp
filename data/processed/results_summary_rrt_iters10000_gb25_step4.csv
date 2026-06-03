@@ -1,0 +1,7 @@
+config,scenario,planner,runs,response_time_mean_s,path_length_mean_m,success_rate_pct,compute_time_mean_ms,replans_mean
+iters10000_gb25_step4,high_crowding,A*,30,25.7134,25.3,100.0,0.4177,6.6333
+iters10000_gb25_step4,high_crowding,RRT*,30,966.4382,0.6884,3.33,2.2009,3.2667
+iters10000_gb25_step4,low_crowding,A*,30,24.2536,24.0333,100.0,0.4202,1.8
+iters10000_gb25_step4,low_crowding,RRT*,30,705.5935,6.0559,30.0,2.3305,0.9333
+iters10000_gb25_step4,moderate_crowding,A*,30,25.5619,25.6333,100.0,0.6058,3.9333
+iters10000_gb25_step4,moderate_crowding,RRT*,30,900.7679,1.6382,10.0,0.6277,2.2667
