@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-set -euo pipefail
+# Note: no `-u` (nounset) — ROS 2 setup.bash references unset vars like
+# AMENT_TRACE_SETUP_FILES and would abort under nounset.
+set -eo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WS_DIR="$ROOT_DIR/ros2_ws"
