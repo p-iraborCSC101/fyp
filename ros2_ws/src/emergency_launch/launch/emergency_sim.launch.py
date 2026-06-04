@@ -13,12 +13,12 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, ExecuteProcess
 from launch.conditions import IfCondition, UnlessCondition
 from launch.substitutions import (
-    ConcatSubstitution,
     LaunchConfiguration,
     PathJoinSubstitution,
     TextSubstitution,
 )
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
 
 
@@ -42,15 +42,16 @@ def generate_launch_description():
     ])
 
     rviz_config = PathJoinSubstitution([pkg_share, 'rviz', 'emergency_nav.rviz'])
-    actor_pose_topic = ConcatSubstitution([
+    # A plain list of substitutions is concatenated into a single string by launch.
+    # (Avoids ConcatSubstitution, which does not exist in Jazzy's launch package.)
+    actor_pose_topic = [
         TextSubstitution(text='/world/hospital_'),
         scenario,
         TextSubstitution(text='/pose/info'),
-    ])
-    actor_pose_bridge_arg = ConcatSubstitution([
-        actor_pose_topic,
+    ]
+    actor_pose_bridge_arg = actor_pose_topic + [
         TextSubstitution(text='@geometry_msgs/msg/PoseArray[gz.msgs.Pose_V'),
-    ])
+    ]
 
     gz_sim_gui = ExecuteProcess(
         cmd=['gz', 'sim', '-r', '-v', '2', world_file],
@@ -143,7 +144,7 @@ def generate_launch_description():
         output='screen',
         parameters=[{
             'frame_id': 'world',
-            'actor_pose_topic': actor_pose_topic,
+            'actor_pose_topic': ParameterValue(actor_pose_topic, value_type=str),
         }],
     )
 
