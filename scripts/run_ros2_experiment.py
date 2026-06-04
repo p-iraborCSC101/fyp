@@ -57,6 +57,13 @@ def parse_args() -> argparse.Namespace:
     return p.parse_args()
 
 
+def _split_csv_args(values: list[str]) -> list[str]:
+    out: list[str] = []
+    for value in values:
+        out.extend(part.strip() for part in value.split(',') if part.strip())
+    return out
+
+
 def ensure_log_dir() -> None:
     LOG_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -117,21 +124,23 @@ def run_trial(scenario: str, planner: str, run_id: int, seed: int,
 
 def main() -> None:
     args = parse_args()
+    args.scenarios = _split_csv_args(args.scenarios)
+    args.planners = _split_csv_args(args.planners)
     ensure_log_dir()
     reset_trial_csv()
 
     total = len(args.scenarios) * len(args.planners) * args.runs
     print(f'Total trials: {total}')
 
-    run_id = 0
+    run_count = 0
     success = 0
     t_start = time.time()
     for scenario in args.scenarios:
         for planner in args.planners:
             for trial_idx in range(1, args.runs + 1):
-                run_id += 1
-                print(f'[{run_id}/{total}] scenario={scenario} planner={planner} trial={trial_idx}')
-                ok = run_trial(scenario, planner, run_id, args.seed,
+                run_count += 1
+                print(f'[{run_count}/{total}] scenario={scenario} planner={planner} trial={trial_idx}')
+                ok = run_trial(scenario, planner, trial_idx, args.seed,
                                args.launch_timeout_s, args.headless)
                 if ok:
                     success += 1

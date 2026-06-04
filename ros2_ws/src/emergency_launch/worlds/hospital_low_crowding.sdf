@@ -1,15 +1,15 @@
 <?xml version='1.0'?>
 <!--
-  Base hospital world: nurse station + corridor + 3 patient rooms.
-  Floor 24m (X) by 14m (Y), origin at south-west corner.
-  Robot spawns at (2, 2). Patient goals: A=(4,9.5), B=(12,9.5), C=(20,9.5).
+  Base hospital world: nurse station + corridor + 2 patient rooms.
+  Floor 16m (X) by 14m (Y), origin at south-west corner.
+  Robot spawns at (2, 2). Patient goals: A=(4,9.5), B=(12,9.5).
 
   Internal walls:
-    - corridor/room divider at y=8, broken by 3 doors of width 2m
-      (Room A door x in [4,6]; Room B door x in [12,14]; Room C door x in [20,22])
-    - room dividers at x=8 and x=16 from y=8 to y=14
+    - corridor/room divider at y=8, broken by 2 doors of width 2m
+      (Room A door x in [4,6]; Room B door x in [12,14])
+    - room divider at x=8 from y=8 to y=14
 
-  Beds: 2m x 1m x 0.4m, centered at (4,11), (12,11), (20,11).
+  Beds: 2m x 1m x 0.4m, centered at (4,11), (12,11).
 -->
 <sdf version='1.7'>
   <world name='hospital_low_crowding'>
@@ -20,7 +20,7 @@
     <gravity>0 0 -9.81</gravity>
 
     <light name='sun' type='directional'>
-      <pose>12 7 10 0 0 0</pose>
+      <pose>8 7 10 0 0 0</pose>
       <diffuse>1 1 1 1</diffuse>
       <specular>0.2 0.2 0.2 1</specular>
       <direction>-0.5 0.1 -1</direction>
@@ -33,7 +33,7 @@
           <geometry>
             <plane>
               <normal>0 0 1</normal>
-              <size>60 60</size>
+              <size>40 40</size>
             </plane>
           </geometry>
         </collision>
@@ -41,7 +41,7 @@
           <geometry>
             <plane>
               <normal>0 0 1</normal>
-              <size>60 60</size>
+              <size>40 40</size>
             </plane>
           </geometry>
           <material>
@@ -55,19 +55,19 @@
     <!-- ===================== Outer walls ===================== -->
     <model name='wall_south'>
       <static>true</static>
-      <pose>12 0 0.5 0 0 0</pose>
+      <pose>8 0 0.5 0 0 0</pose>
       <link name='link'>
-        <collision name='c'><geometry><box><size>24.2 0.2 1</size></box></geometry></collision>
-        <visual name='v'><geometry><box><size>24.2 0.2 1</size></box></geometry>
+        <collision name='c'><geometry><box><size>16.2 0.2 1</size></box></geometry></collision>
+        <visual name='v'><geometry><box><size>16.2 0.2 1</size></box></geometry>
           <material><ambient>0.85 0.85 0.85 1</ambient><diffuse>0.85 0.85 0.85 1</diffuse></material></visual>
       </link>
     </model>
     <model name='wall_north'>
       <static>true</static>
-      <pose>12 14 0.5 0 0 0</pose>
+      <pose>8 14 0.5 0 0 0</pose>
       <link name='link'>
-        <collision name='c'><geometry><box><size>24.2 0.2 1</size></box></geometry></collision>
-        <visual name='v'><geometry><box><size>24.2 0.2 1</size></box></geometry>
+        <collision name='c'><geometry><box><size>16.2 0.2 1</size></box></geometry></collision>
+        <visual name='v'><geometry><box><size>16.2 0.2 1</size></box></geometry>
           <material><ambient>0.85 0.85 0.85 1</ambient><diffuse>0.85 0.85 0.85 1</diffuse></material></visual>
       </link>
     </model>
@@ -82,7 +82,7 @@
     </model>
     <model name='wall_east'>
       <static>true</static>
-      <pose>24 7 0.5 0 0 0</pose>
+      <pose>16 7 0.5 0 0 0</pose>
       <link name='link'>
         <collision name='c'><geometry><box><size>0.2 14 1</size></box></geometry></collision>
         <visual name='v'><geometry><box><size>0.2 14 1</size></box></geometry>
@@ -90,7 +90,7 @@
       </link>
     </model>
 
-    <!-- ============ Corridor / rooms divider at y=8 with 3 doors ============ -->
+    <!-- ============ Corridor / rooms divider at y=8 with 2 doors ============ -->
     <model name='wall_div_seg1'>
       <static>true</static>
       <pose>2 8 0.5 0 0 0</pose>
@@ -111,16 +111,7 @@
     </model>
     <model name='wall_div_seg3'>
       <static>true</static>
-      <pose>17 8 0.5 0 0 0</pose>
-      <link name='link'>
-        <collision name='c'><geometry><box><size>6 0.2 1</size></box></geometry></collision>
-        <visual name='v'><geometry><box><size>6 0.2 1</size></box></geometry>
-          <material><ambient>0.85 0.85 0.85 1</ambient><diffuse>0.85 0.85 0.85 1</diffuse></material></visual>
-      </link>
-    </model>
-    <model name='wall_div_seg4'>
-      <static>true</static>
-      <pose>23 8 0.5 0 0 0</pose>
+      <pose>15 8 0.5 0 0 0</pose>
       <link name='link'>
         <collision name='c'><geometry><box><size>2 0.2 1</size></box></geometry></collision>
         <visual name='v'><geometry><box><size>2 0.2 1</size></box></geometry>
@@ -128,19 +119,10 @@
       </link>
     </model>
 
-    <!-- ============ Room dividers at x=8 and x=16 ============ -->
+    <!-- ============ Room divider at x=8 ============ -->
     <model name='wall_room_a_b'>
       <static>true</static>
       <pose>8 11 0.5 0 0 0</pose>
-      <link name='link'>
-        <collision name='c'><geometry><box><size>0.2 6 1</size></box></geometry></collision>
-        <visual name='v'><geometry><box><size>0.2 6 1</size></box></geometry>
-          <material><ambient>0.85 0.85 0.85 1</ambient><diffuse>0.85 0.85 0.85 1</diffuse></material></visual>
-      </link>
-    </model>
-    <model name='wall_room_b_c'>
-      <static>true</static>
-      <pose>16 11 0.5 0 0 0</pose>
       <link name='link'>
         <collision name='c'><geometry><box><size>0.2 6 1</size></box></geometry></collision>
         <visual name='v'><geometry><box><size>0.2 6 1</size></box></geometry>
@@ -167,13 +149,41 @@
           <material><ambient>0.6 0.5 0.4 1</ambient><diffuse>0.6 0.5 0.4 1</diffuse></material></visual>
       </link>
     </model>
-    <model name='bed_room_c'>
+
+    <!-- ============ Sensor visuals ============ -->
+    <model name='camera_fov'>
       <static>true</static>
-      <pose>20 11 0.2 0 0 0</pose>
+      <pose>2 6 1.5 0 0 -1.57</pose>
       <link name='link'>
-        <collision name='c'><geometry><box><size>2 1 0.4</size></box></geometry></collision>
-        <visual name='v'><geometry><box><size>2 1 0.4</size></box></geometry>
-          <material><ambient>0.6 0.5 0.4 1</ambient><diffuse>0.6 0.5 0.4 1</diffuse></material></visual>
+        <visual name='fov'>
+          <geometry>
+            <cone>
+              <radius>3.0</radius>
+              <length>5.0</length>
+            </cone>
+          </geometry>
+          <material>
+            <ambient>0.2 0.8 1.0 0.3</ambient>
+            <diffuse>0.2 0.8 1.0 0.3</diffuse>
+          </material>
+          <transparency>0.7</transparency>
+        </visual>
+      </link>
+    </model>
+
+    <model name='heart_monitor'>
+      <static>true</static>
+      <pose>4 9.5 0.8 0 0 0</pose>
+      <link name='link'>
+        <visual name='monitor_body'>
+          <geometry><box><size>0.6 0.2 0.4</size></box></geometry>
+          <material><ambient>0.1 0.1 0.1 1</ambient><diffuse>0.1 0.1 0.1 1</diffuse></material>
+        </visual>
+        <visual name='monitor_screen'>
+          <pose>0.0 0.11 0.0 0 0 0</pose>
+          <geometry><box><size>0.5 0.02 0.3</size></box></geometry>
+          <material><ambient>0.0 0.8 0.2 1</ambient><diffuse>0.0 0.8 0.2 1</diffuse></material>
+        </visual>
       </link>
     </model>
 
@@ -247,14 +257,14 @@
         <auto_start>true</auto_start>
         <trajectory id='0' type='walk'>
         <waypoint><time>0.000</time><pose>2.00 5.00 1.0 0 0 0</pose></waypoint>
-        <waypoint><time>50.000</time><pose>22.00 5.00 1.0 0 0 0</pose></waypoint>
-        <waypoint><time>100.000</time><pose>2.00 5.00 1.0 0 0 0</pose></waypoint>
+        <waypoint><time>30.000</time><pose>14.00 5.00 1.0 0 0 0</pose></waypoint>
+        <waypoint><time>60.000</time><pose>2.00 5.00 1.0 0 0 0</pose></waypoint>
         </trajectory>
       </script>
     </actor>
 
     <actor name='human_2'>
-      <pose>20.00 7.00 1.0 0 0 0</pose>
+      <pose>13.00 7.00 1.0 0 0 0</pose>
       <skin>
         <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename>
         <scale>1.0</scale>
@@ -268,9 +278,9 @@
         <delay_start>0</delay_start>
         <auto_start>true</auto_start>
         <trajectory id='0' type='walk'>
-        <waypoint><time>0.000</time><pose>20.00 7.00 1.0 0 0 0</pose></waypoint>
-        <waypoint><time>37.500</time><pose>5.00 7.00 1.0 0 0 0</pose></waypoint>
-        <waypoint><time>75.000</time><pose>20.00 7.00 1.0 0 0 0</pose></waypoint>
+        <waypoint><time>0.000</time><pose>13.00 7.00 1.0 0 0 0</pose></waypoint>
+        <waypoint><time>20.000</time><pose>5.00 7.00 1.0 0 0 0</pose></waypoint>
+        <waypoint><time>40.000</time><pose>13.00 7.00 1.0 0 0 0</pose></waypoint>
         </trajectory>
       </script>
     </actor>

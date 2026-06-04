@@ -107,7 +107,10 @@ class RobotControllerNode(Node):
         scale = self.get_parameter('grid_scale').get_parameter_value().double_value
         raw_path = payload.get('path', [])
         self.current_path = [(point['x'] * scale, point['y'] * scale) for point in raw_path]
-        self.path_index = 0
+        # The planner always plans from the fixed start cell, so a mid-drive replan
+        # would otherwise snap us back to waypoint 0 and drive backward. Resume from
+        # the waypoint nearest the robot's current pose instead.
+        self.path_index = self._nearest_waypoint_index()
         self.arrived = False
         self.failed = False
         self._last_progress_pos = None
@@ -117,6 +120,14 @@ class RobotControllerNode(Node):
             f'Loaded route alert={self.alert_id} planner={self.planner} '
             f'waypoints={len(self.current_path)}'
         )
+
+    def _nearest_waypoint_index(self) -> int:
+        if self.pose is None or not self.current_path:
+            return 0
+        rx, ry = self.pose.position.x, self.pose.position.y
+        return min(range(len(self.current_path)),
+                   key=lambda i: math.hypot(self.current_path[i][0] - rx,
+                                            self.current_path[i][1] - ry))
 
     # ------------------------------------------------------------------
     # publishing

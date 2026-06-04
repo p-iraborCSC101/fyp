@@ -39,6 +39,7 @@ class PathPlannerNode(Node):
         self.declare_parameter('seed', 42)
         self.declare_parameter('world_to_grid_scale', 1.0)
         self.declare_parameter('world_to_grid_origin', [0.0, 0.0])
+        self.declare_parameter('max_predictive_replans', 6)
 
         seed = int(self.get_parameter('seed').get_parameter_value().integer_value)
         self._rng = random.Random(seed)
@@ -49,6 +50,14 @@ class PathPlannerNode(Node):
         self.obstacles: set[tuple[int, int]] = set()
         self._event_obstacles: set[tuple[int, int]] = set()
         self._human_obstacles: set[tuple[int, int]] = set()
+        self._max_predictive_replans = int(
+            self.get_parameter('max_predictive_replans').get_parameter_value().integer_value
+        )
+        # Active planned path (grid cells) and the last human-on-path blockage we
+        # replanned around — used to trigger predictive replans when a human steps
+        # onto the current route, instead of waiting for the robot to physically stall.
+        self._current_path_cells: set[tuple[int, int]] = set()
+        self._last_block_sig: frozenset = frozenset()
         self._load_scenario()
 
         self.subscription = self.create_subscription(
@@ -105,6 +114,8 @@ class PathPlannerNode(Node):
         alert_id = str(payload.get('alert_id', f'alert_{int(time.time()*1000)}'))
 
         self._event_obstacles.clear()
+        self._current_path_cells = set()
+        self._last_block_sig = frozenset()
         self._replans_for_alert[alert_id] = 0
         self._last_alert = {
             'alert_id': alert_id,
@@ -165,6 +176,35 @@ class PathPlannerNode(Node):
                     updated.add((gx, gy))
 
         self._human_obstacles = updated
+        self._maybe_predictive_replan()
+
+    def _maybe_predictive_replan(self) -> None:
+        """Replan proactively when a human now occupies a cell on the active path.
+
+        This makes the dynamic obstacle 'bite' without waiting for the robot to
+        physically stall. Debounced by blockage signature and capped per alert so
+        a hovering human can't trigger a replan storm.
+        """
+        if self._last_alert is None or not self._current_path_cells:
+            return
+        blocking = self._human_obstacles & self._current_path_cells
+        blocking.discard(self._last_alert['goal'])
+        blocking.discard(self.start)
+        sig = frozenset(blocking)
+        if not sig or sig == self._last_block_sig:
+            return
+        alert_id = self._last_alert['alert_id']
+        if self._replans_for_alert.get(alert_id, 0) >= self._max_predictive_replans:
+            return
+
+        self._last_block_sig = sig
+        self._replans_for_alert[alert_id] = self._replans_for_alert.get(alert_id, 0) + 1
+        self._last_alert['reason'] = 'replan'
+        self.get_logger().info(
+            f'Predictive replan #{self._replans_for_alert[alert_id]} for {alert_id}: '
+            f'human(s) on path at {sorted(sig)}'
+        )
+        self._plan_and_publish()
 
     # ------------------------------------------------------------------
     # planning + publish
@@ -187,6 +227,7 @@ class PathPlannerNode(Node):
         compute_ms = (cpu_t1 - cpu_t0) * 1000.0
 
         if path is None:
+            self._current_path_cells = set()
             response = {
                 'alert_id': alert_id,
                 'status': 'failed',
@@ -202,6 +243,7 @@ class PathPlannerNode(Node):
             }
             self.get_logger().warning(f'No path found for goal {goal}')
         else:
+            self._current_path_cells = set(path)
             response = {
                 'alert_id': alert_id,
                 'status': 'success',
@@ -209,7 +251,7 @@ class PathPlannerNode(Node):
                 'start': {'x': self.start[0], 'y': self.start[1]},
                 'goal': {'x': goal[0], 'y': goal[1]},
                 'path': [{'x': x, 'y': y} for x, y in path],
-                'path_length': len(path) - 1,
+                'path_length': self.path_length(path),
                 't_plan_start_ns': t_start_ns,
                 't_plan_end_ns': t_end_ns,
                 'compute_time_ms': round(compute_ms, 4),
@@ -233,14 +275,28 @@ class PathPlannerNode(Node):
 
     def neighbors(self, node: tuple[int, int]):
         x, y = node
-        for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
-            if 0 <= nx < self.grid_width and 0 <= ny < self.grid_height \
-                    and not self._is_blocked((nx, ny)):
-                yield (nx, ny)
+        # 8-connectivity: cardinal + diagonal, for a fair length comparison with
+        # the continuous-space RRT* (4-connectivity inflates A* paths by up to ~41%).
+        for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1),
+                       (1, 1), (1, -1), (-1, 1), (-1, -1)):
+            nx, ny = x + dx, y + dy
+            if not (0 <= nx < self.grid_width and 0 <= ny < self.grid_height):
+                continue
+            if self._is_blocked((nx, ny)):
+                continue
+            # No corner-cutting: a diagonal move requires both orthogonal cells free.
+            if dx != 0 and dy != 0:
+                if self._is_blocked((x + dx, y)) or self._is_blocked((x, y + dy)):
+                    continue
+            yield (nx, ny)
 
     @staticmethod
-    def heuristic(node: tuple[int, int], goal: tuple[int, int]) -> int:
-        return abs(node[0] - goal[0]) + abs(node[1] - goal[1])
+    def heuristic(node: tuple[int, int], goal: tuple[int, int]) -> float:
+        # Octile distance: admissible heuristic for 8-connected grids with
+        # unit/√2 move costs.
+        dx = abs(node[0] - goal[0])
+        dy = abs(node[1] - goal[1])
+        return (dx + dy) + (math.sqrt(2) - 2.0) * min(dx, dy)
 
     @staticmethod
     def reconstruct_path(came_from: dict, current: tuple[int, int]) -> list[tuple[int, int]]:
@@ -250,6 +306,15 @@ class PathPlannerNode(Node):
             path.append(current)
         path.reverse()
         return path
+
+    @classmethod
+    def path_length(cls, path: list[tuple[int, int]]) -> float:
+        if len(path) < 2:
+            return 0.0
+        total = 0.0
+        for idx in range(1, len(path)):
+            total += cls._euclid(path[idx - 1], path[idx])
+        return round(total, 4)
 
     def a_star(self, start, goal):
         if start == goal:
@@ -272,7 +337,7 @@ class PathPlannerNode(Node):
             closed.add(current)
 
             for nb in self.neighbors(current):
-                tentative_g = g_score[current] + 1
+                tentative_g = g_score[current] + self._euclid(current, nb)
                 if tentative_g >= g_score.get(nb, inf):
                     continue
                 came_from[nb] = current
