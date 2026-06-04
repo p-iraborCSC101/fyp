@@ -46,7 +46,7 @@ class HumanObstaclesNode(Node):
                 continue
             if math.isfinite(pose.position.z) and pose.position.z < self._min_z:
                 continue
-                filtered.poses.append(pose)
+            filtered.poses.append(pose)
 
         if not filtered.poses:
             return

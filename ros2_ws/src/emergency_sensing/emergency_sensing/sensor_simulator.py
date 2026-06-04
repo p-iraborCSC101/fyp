@@ -42,7 +42,11 @@ class SensorSimulator(Node):
 
         self.patient_locations = self._load_locations()
         self.sequence = 0
-        self._first_alert_done = False
+        # Deterministic target order seeded by (seed + run_id). Alert #N always
+        # targets the same patient regardless of planner speed / timing, so A*
+        # and RRT* runs with the same run_id solve identical start/goal pairs.
+        self._alert_order = list(range(len(self.patient_locations)))
+        self._rng.shuffle(self._alert_order)
 
         delay = float(self.get_parameter('first_alert_delay_s').get_parameter_value().double_value)
         period = float(self.get_parameter('alert_period_s').get_parameter_value().double_value)
@@ -74,9 +78,8 @@ class SensorSimulator(Node):
             self.get_logger().error('No patient locations available; nothing to publish')
             return
 
-        location = self._rng.choice(self.patient_locations) if not self._first_alert_done \
-            else self.patient_locations[self.sequence % len(self.patient_locations)]
-        self._first_alert_done = True
+        idx = self._alert_order[self.sequence % len(self._alert_order)]
+        location = self.patient_locations[idx]
 
         patient_id = location.get('name', f'patient_{self.sequence + 1}')
         now_ns = self.get_clock().now().nanoseconds

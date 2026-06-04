@@ -155,6 +155,7 @@ def generate_launch_description():
         parameters=[{
             'planner_mode': planner_mode,
             'scenario_file': scenario_file,
+            'seed': seed,
             'rrt_max_iterations': 2000,
             'rrt_step_size': 0.8,
             'rrt_goal_sample_rate': 0.25,

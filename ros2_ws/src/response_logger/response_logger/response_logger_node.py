@@ -32,6 +32,7 @@ from std_msgs.msg import String
 EVENT_FIELDS = ['timestamp', 'topic', 'payload']
 TRIAL_FIELDS = [
     'alert_id', 'scenario', 'planner', 'run_id',
+    'start_x', 'start_y', 'goal_x', 'goal_y',
     't_alert_s', 't_plan_recv_s', 't_arrived_s',
     'response_time_s', 'path_length_m', 'success',
     'compute_time_ms', 'replans',
@@ -125,11 +126,16 @@ class ResponseLoggerNode(Node):
         self._append_event('emergency_alert', payload)
 
         alert_id = str(payload.get('alert_id', f'alert_{int(self._now_s()*1000)}'))
+        location = payload.get('location') or {}
         self._trials.setdefault(alert_id, {
             'alert_id': alert_id,
             'scenario': self.scenario,
             'planner': self.planner,
             'run_id': self.run_id,
+            'start_x': '',
+            'start_y': '',
+            'goal_x': location.get('x', ''),
+            'goal_y': location.get('y', ''),
             't_alert_s': round(self._now_s(), 4),
             'replans': 0,
             'success': 0,
@@ -159,13 +165,25 @@ class ResponseLoggerNode(Node):
             'replans': 0,
             'success': 0,
         })
-        if payload.get('cause') == 'replan':
-            trial['replans'] = int(payload.get('replans_so_far', trial.get('replans', 0)))
-            return
-
-        trial['t_plan_recv_s'] = round(self._now_s(), 4)
-        trial['compute_time_ms'] = float(payload.get('compute_time_ms', 0))
-        trial['path_length_m'] = float(payload.get('path_length', 0))
+        trial['replans'] = max(
+            int(payload.get('replans_so_far', 0)),
+            int(trial.get('replans', 0)),
+        )
+        start = payload.get('start') or {}
+        goal = payload.get('goal') or {}
+        if 'x' in start:
+            trial['start_x'] = start.get('x')
+            trial['start_y'] = start.get('y')
+        if 'x' in goal:
+            trial['goal_x'] = goal.get('x')
+            trial['goal_y'] = goal.get('y')
+        if not trial.get('t_plan_recv_s'):
+            trial['t_plan_recv_s'] = round(self._now_s(), 4)
+        trial['compute_time_ms'] = (
+            float(trial.get('compute_time_ms') or 0)
+            + float(payload.get('compute_time_ms', 0))
+        )
+        trial['path_length_m'] = float(payload.get('path_length', trial.get('path_length_m') or 0))
         if payload.get('status') != 'success':
             trial['success'] = 0
             trial['t_arrived_s'] = round(self._now_s(), 4)
@@ -186,7 +204,10 @@ class ResponseLoggerNode(Node):
         if not trial:
             return
 
-        trial['replans'] = int(payload.get('replans', trial.get('replans', 0)))
+        trial['replans'] = max(
+            int(payload.get('replans', 0)),
+            int(trial.get('replans', 0)),
+        )
         if payload.get('status') == 'arrived':
             trial['success'] = 1
             trial['t_arrived_s'] = round(self._now_s(), 4)
