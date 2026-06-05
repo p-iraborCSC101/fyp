@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
-"""Create basic figures for Chapter 5 from results_summary.csv."""
+"""Create chapter-ready figures from results_summary.csv.
+
+Works with either the pooled summary (scenario, planner) or the per-goal summary
+produced by `evaluate_metrics.py --by-goal` (adds a `goal` column). For a per-goal
+summary each metric figure gets one subplot per goal (patient_a / patient_b), so
+the short and long routes are not averaged together.
+
+Plots the metrics that actually carry signal: path length, response time, compute
+time, and replans -- each as grouped A*/RRT* bars across crowding levels, with
+std error bars.
+"""
 
 from __future__ import annotations
 
@@ -9,14 +19,59 @@ import os
 
 import matplotlib.pyplot as plt
 
+SCENARIOS = ["low_crowding", "moderate_crowding", "high_crowding"]
+PLANNERS = ["A*", "RRT*"]
+
+# (mean_col, std_col, y-label, filename-stem)
+METRICS = [
+    ("path_length_mean_m", "path_length_std_m", "Path Length (m)", "path_length"),
+    ("response_time_mean_s", "response_time_std_s", "Response Time (s)", "response_time"),
+    ("compute_time_mean_ms", "compute_time_std_ms", "Compute Time (ms)", "compute_time"),
+    ("replans_mean", "replans_std", "Replans", "replans"),
+]
+
 
 def load_summary(path: str) -> list[dict[str, str]]:
     with open(path, "r", newline="", encoding="utf-8") as f:
         return list(csv.DictReader(f))
 
 
+def fnum(row: dict, col: str) -> float:
+    try:
+        return float(row.get(col, 0.0))
+    except (ValueError, TypeError):
+        return 0.0
+
+
+def find(rows, scenario, planner, goal=None):
+    for r in rows:
+        if r["scenario"] == scenario and r["planner"] == planner:
+            if goal is None or r.get("goal") == goal:
+                return r
+    return None
+
+
+def draw_group(ax, rows, mean_col, std_col, ylabel, goal=None):
+    x = list(range(len(SCENARIOS)))
+    width = 0.35
+    for i, planner in enumerate(PLANNERS):
+        means, errs = [], []
+        for s in SCENARIOS:
+            r = find(rows, s, planner, goal)
+            means.append(fnum(r, mean_col) if r else 0.0)
+            errs.append(fnum(r, std_col) if r else 0.0)
+        offset = (i - 0.5) * width
+        ax.bar([xi + offset for xi in x], means, width=width, yerr=errs,
+               capsize=3, label=planner)
+    ax.set_xticks(x)
+    ax.set_xticklabels([s.replace("_crowding", "") for s in SCENARIOS])
+    ax.set_xlabel("Crowding")
+    ax.set_ylabel(ylabel)
+    ax.legend()
+
+
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Plot response time and success rate by planner/scenario.")
+    parser = argparse.ArgumentParser(description="Plot summary metrics by planner/scenario(/goal).")
     parser.add_argument("--infile", type=str, default="../data/processed/results_summary.csv")
     parser.add_argument("--outdir", type=str, default="../data/figures")
     args = parser.parse_args()
@@ -26,32 +81,20 @@ def main() -> None:
     os.makedirs(outdir, exist_ok=True)
 
     rows = load_summary(in_path)
-    scenarios = ["low_crowding", "moderate_crowding", "high_crowding"]
+    goals = sorted({r["goal"] for r in rows if r.get("goal")}) if any("goal" in r for r in rows) else []
 
-    for metric, ylabel, fname in [
-        ("response_time_mean_s", "Mean Response Time (s)", "response_time_comparison.png"),
-        ("success_rate_pct", "Success Rate (%)", "success_rate_comparison.png"),
-    ]:
-        x = list(range(len(scenarios)))
-        a_vals = []
-        r_vals = []
-        for s in scenarios:
-            a = next((r for r in rows if r["scenario"] == s and r["planner"] == "A*"), None)
-            rr = next((r for r in rows if r["scenario"] == s and r["planner"] == "RRT*"), None)
-            a_vals.append(float(a[metric]) if a else 0.0)
-            r_vals.append(float(rr[metric]) if rr else 0.0)
-
-        width = 0.35
-        fig, ax = plt.subplots(figsize=(8, 4.5))
-        ax.bar([i - width / 2 for i in x], a_vals, width=width, label="A*")
-        ax.bar([i + width / 2 for i in x], r_vals, width=width, label="RRT*")
-        ax.set_xticks(x)
-        ax.set_xticklabels([s.replace("_", " ") for s in scenarios])
-        ax.set_ylabel(ylabel)
-        ax.set_title(f"{ylabel} by Scenario")
-        ax.legend()
+    for mean_col, std_col, ylabel, stem in METRICS:
+        if goals:
+            fig, axes = plt.subplots(1, len(goals), figsize=(5.5 * len(goals), 4.5), squeeze=False)
+            for ax, goal in zip(axes[0], goals):
+                draw_group(ax, rows, mean_col, std_col, ylabel, goal=goal)
+                ax.set_title(f"{ylabel} - {goal}")
+        else:
+            fig, ax = plt.subplots(figsize=(8, 4.5))
+            draw_group(ax, rows, mean_col, std_col, ylabel)
+            ax.set_title(f"{ylabel} by Crowding")
         fig.tight_layout()
-        out = os.path.join(outdir, fname)
+        out = os.path.join(outdir, f"{stem}_comparison.png")
         fig.savefig(out, dpi=180)
         plt.close(fig)
         print(f"Saved {out}")
