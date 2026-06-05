@@ -28,6 +28,7 @@ METRICS = [
     ("response_time_mean_s", "response_time_std_s", "Response Time (s)", "response_time"),
     ("compute_time_mean_ms", "compute_time_std_ms", "Compute Time (ms)", "compute_time"),
     ("replans_mean", "replans_std", "Replans", "replans"),
+    ("success_rate_pct", "success_rate_std", "Success Rate (%)", "success_rate"),
 ]
 
 
