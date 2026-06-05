@@ -18,7 +18,6 @@ from launch.substitutions import (
     TextSubstitution,
 )
 from launch_ros.actions import Node
-from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
 
 
@@ -42,16 +41,6 @@ def generate_launch_description():
     ])
 
     rviz_config = PathJoinSubstitution([pkg_share, 'rviz', 'emergency_nav.rviz'])
-    # A plain list of substitutions is concatenated into a single string by launch.
-    # (Avoids ConcatSubstitution, which does not exist in Jazzy's launch package.)
-    actor_pose_topic = [
-        TextSubstitution(text='/world/hospital_'),
-        scenario,
-        TextSubstitution(text='/pose/info'),
-    ]
-    actor_pose_bridge_arg = actor_pose_topic + [
-        TextSubstitution(text='@geometry_msgs/msg/PoseArray[gz.msgs.Pose_V'),
-    ]
 
     gz_sim_gui = ExecuteProcess(
         cmd=['gz', 'sim', '-r', '-v', '2', world_file],
@@ -129,14 +118,6 @@ def generate_launch_description():
         output='screen',
     )
 
-    actor_pose_bridge = Node(
-        package='ros_gz_bridge',
-        executable='parameter_bridge',
-        name='actor_pose_bridge',
-        arguments=[actor_pose_bridge_arg],
-        output='screen',
-    )
-
     human_obstacles = Node(
         package='human_obstacles',
         executable='human_obstacles_node',
@@ -144,7 +125,9 @@ def generate_launch_description():
         output='screen',
         parameters=[{
             'frame_id': 'world',
-            'actor_pose_topic': ParameterValue(actor_pose_topic, value_type=str),
+            'scenario_file': scenario_file,
+            'publish_rate_hz': 10.0,
+            'use_sim_time': True,
         }],
     )
 
@@ -228,7 +211,6 @@ def generate_launch_description():
         sensor_simulator,
         alert_fusion,
         sensor_dashboard,
-        actor_pose_bridge,
         human_obstacles,
         path_planner,
         robot_controller,

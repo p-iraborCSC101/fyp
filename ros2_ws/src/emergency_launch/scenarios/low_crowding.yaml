@@ -52,3 +52,12 @@ patient_locations:
     x: 12
     y: 9
     severity: high
+
+# Moving humans, driven in software by human_obstacles_node (Gazebo does not
+# broadcast scripted-actor poses). Coordinates are grid cells; each waypoint is
+# [time_s, x, y] and the trajectory loops over the final timestamp. These mirror
+# the <actor> trajectories in hospital_low_crowding.sdf so the planner's dynamic
+# obstacles stay in sync with what Gazebo renders.
+humans:
+  - waypoints: [[0.0, 2.0, 5.0], [30.0, 14.0, 5.0], [60.0, 2.0, 5.0]]
+  - waypoints: [[0.0, 13.0, 7.0], [20.0, 5.0, 7.0], [40.0, 13.0, 7.0]]
