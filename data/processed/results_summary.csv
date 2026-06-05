@@ -1,7 +1,7 @@
 scenario,planner,runs,response_time_mean_s,response_time_std_s,path_length_mean_m,path_length_std_m,success_rate_pct,compute_time_mean_ms,replans_mean
-high_crowding,A*,30,60.4418,174.4184,26.4333,7.5308,96.67,0.4462,6.6333
-high_crowding,RRT*,30,999.1301,0.0444,0.0,0.0,0.0,1.3403,3.7333
-low_crowding,A*,30,25.155,8.0057,24.1667,7.0099,100.0,0.5223,1.6667
-low_crowding,RRT*,30,739.0771,431.2767,6.2281,10.6656,26.67,1.2318,1.0
-moderate_crowding,A*,30,25.7238,6.595,25.9,6.0572,100.0,0.4483,3.8
-moderate_crowding,RRT*,30,934.2755,242.6576,1.6597,6.2206,6.67,0.9545,1.8667
+high_crowding,A*,10,30.1921,6.9793,10.9497,3.1213,100.0,0.3647,0.0
+high_crowding,RRT*,10,28.7745,6.3044,10.2637,2.8245,100.0,1.2394,0.0
+low_crowding,A*,10,30.6469,7.122,10.9497,3.1213,100.0,0.5114,0.0
+low_crowding,RRT*,10,28.7579,6.2862,10.2637,2.8245,100.0,1.2233,0.0
+moderate_crowding,A*,10,30.1304,6.9115,10.9497,3.1213,100.0,0.3405,0.0
+moderate_crowding,RRT*,10,28.9022,6.3886,10.2637,2.8245,100.0,1.4571,0.0
