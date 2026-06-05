@@ -56,6 +56,10 @@ def main() -> None:
     parser.add_argument("--outfile", type=str, default="../data/processed/results_summary.csv")
     parser.add_argument("--by-goal", action="store_true",
                         help="Also split each (scenario, planner) cell by goal (patient_a/patient_b).")
+    parser.add_argument("--deadline", type=float, default=None,
+                        help="Clinical response deadline in seconds. If set, a run counts as a "
+                             "success only if it arrived AND response_time_s <= deadline. Lets you "
+                             "report a meaningful success rate without re-running the simulation.")
     args = parser.parse_args()
 
     in_path = os.path.abspath(os.path.join(os.path.dirname(__file__), args.infile))
@@ -77,7 +81,12 @@ def main() -> None:
         plen_m, plen_s = mean_std([to_float(x["path_length_m"]) for x in items])
         comp_m, comp_s = mean_std([to_float(x["compute_time_ms"]) for x in items])
         repl_m, repl_s = mean_std([to_float(x["replans"]) for x in items])
-        succ = [to_float(x["success"]) for x in items]
+        if args.deadline is not None:
+            succ = [1.0 if (to_float(x["success"]) >= 1.0
+                            and to_float(x["response_time_s"]) <= args.deadline) else 0.0
+                    for x in items]
+        else:
+            succ = [to_float(x["success"]) for x in items]
 
         row = {
             "scenario": key[0],
@@ -114,7 +123,8 @@ def main() -> None:
         writer.writeheader()
         writer.writerows(summary)
 
-    print(f"Wrote summary to {out_path}  ({'by goal' if args.by_goal else 'pooled'}, {len(summary)} rows)")
+    dl = f", deadline={args.deadline}s" if args.deadline is not None else ""
+    print(f"Wrote summary to {out_path}  ({'by goal' if args.by_goal else 'pooled'}, {len(summary)} rows{dl})")
 
 
 if __name__ == "__main__":

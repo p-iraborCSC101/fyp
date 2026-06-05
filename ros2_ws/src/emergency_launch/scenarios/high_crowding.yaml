@@ -52,13 +52,16 @@ patient_locations:
 
 # Moving humans, driven in software by human_obstacles_node (Gazebo does not
 # broadcast scripted-actor poses). Coordinates are grid cells; each waypoint is
-# [time_s, x, y] and the trajectory loops over the final timestamp. These mirror
-# the <actor> trajectories in hospital_high_crowding.sdf.
+# [time_s, x, y] and the trajectory loops over the final timestamp.
+# All humans walk at the same ~0.4 m/s across every scenario, so crowding differs
+# ONLY by the number of people (not their speed). This keeps difficulty monotonic
+# in crowding. (Times are normalized by distance, so they no longer match the
+# faster <actor> animation timings in the .sdf; that only affects GUI visuals.)
 humans:
-  - waypoints: [[0.0, 2.0, 5.0], [15.0, 14.0, 5.0], [30.0, 2.0, 5.0]]
-  - waypoints: [[0.0, 13.0, 7.0], [10.0, 5.0, 7.0], [20.0, 13.0, 7.0]]
-  - waypoints: [[0.0, 5.0, 4.0], [4.375, 5.0, 7.5], [8.75, 5.0, 4.0]]
-  - waypoints: [[0.0, 11.0, 4.0], [4.375, 11.0, 7.5], [8.75, 11.0, 4.0]]
-  - waypoints: [[0.0, 14.0, 4.0], [4.375, 14.0, 7.5], [8.75, 14.0, 4.0]]
-  - waypoints: [[0.0, 8.0, 6.0], [5.0, 12.0, 6.0], [10.0, 8.0, 6.0]]
-  - waypoints: [[0.0, 12.0, 5.0], [7.906, 6.0, 7.0], [15.811, 12.0, 5.0]]
+  - waypoints: [[0.0, 2.0, 5.0], [30.0, 14.0, 5.0], [60.0, 2.0, 5.0]]
+  - waypoints: [[0.0, 13.0, 7.0], [20.0, 5.0, 7.0], [40.0, 13.0, 7.0]]
+  - waypoints: [[0.0, 5.0, 4.0], [8.75, 5.0, 7.5], [17.5, 5.0, 4.0]]
+  - waypoints: [[0.0, 11.0, 4.0], [8.75, 11.0, 7.5], [17.5, 11.0, 4.0]]
+  - waypoints: [[0.0, 14.0, 4.0], [8.75, 14.0, 7.5], [17.5, 14.0, 4.0]]
+  - waypoints: [[0.0, 8.0, 6.0], [10.0, 12.0, 6.0], [20.0, 8.0, 6.0]]
+  - waypoints: [[0.0, 12.0, 5.0], [15.8, 6.0, 7.0], [31.6, 12.0, 5.0]]
