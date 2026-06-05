@@ -143,6 +143,7 @@ def generate_launch_description():
             'rrt_max_iterations': 2000,
             'rrt_step_size': 0.8,
             'rrt_goal_sample_rate': 0.25,
+            'max_predictive_replans': 20,
         }],
     )
 
