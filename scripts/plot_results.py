@@ -56,18 +56,19 @@ def draw_group(ax, rows, mean_col, std_col, ylabel, goal=None):
     x = list(range(len(SCENARIOS)))
     width = 0.35
     for i, planner in enumerate(PLANNERS):
-        means, errs = [], []
+        means = []
         for s in SCENARIOS:
             r = find(rows, s, planner, goal)
             means.append(fnum(r, mean_col) if r else 0.0)
-            errs.append(fnum(r, std_col) if r else 0.0)
         offset = (i - 0.5) * width
-        ax.bar([xi + offset for xi in x], means, width=width, yerr=errs,
-               capsize=3, label=planner)
+        xs = [xi + offset for xi in x]
+        ax.bar(xs, means, width=width, label=planner)
     ax.set_xticks(x)
     ax.set_xticklabels([s.replace("_crowding", "") for s in SCENARIOS])
     ax.set_xlabel("Crowding")
     ax.set_ylabel(ylabel)
+    # Bar charts must start at zero.
+    ax.set_ylim(bottom=0)
     ax.legend()
 
 
